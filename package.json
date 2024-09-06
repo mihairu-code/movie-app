@@ -1,0 +1,43 @@
+{
+  "name": "movie-app",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "prepare": "husky",
+    "lint": "eslint '/**/*.{js,jsx}'",
+    "lint:fix": "eslint --fix '/**/*.{js,jsx}'",
+    "format": "prettier --write 'src/**/*.{js,jsx}'"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint-plugin-prettier": "^5.2.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^9.9.1",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-jsx-a11y": "^6.10.0",
+    "eslint-plugin-react": "^7.35.2",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "husky": "^8.0.0",
+    "less": "^4.2.0",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "vite": "^5.4.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
