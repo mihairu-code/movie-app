@@ -30,7 +30,7 @@ export default [
       'linebreak-style': [0, 'unix'],
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 0,
-      'import/no-unresolved': [2, { caseSensitive: false }],
+      'import/no-unresolved': "off",
       'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx'] }],
       'import/order': [
         2,
