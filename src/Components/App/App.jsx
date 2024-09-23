@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
-import { Spin, Alert, Input, Layout } from 'antd'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Spin, Alert, Input, Layout, Pagination } from 'antd'
+import { LoadingOutlined } from '@ant-design/icons'
+import { debounce } from 'lodash'
 
 import MovieList from '../MovieList/MovieList'
 import './App.less'
@@ -11,31 +13,12 @@ const App = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isOffline, setIsOffline] = useState(!navigator.onLine)
-  const [query, setQuery] = useState('') // Для хранения поискового запроса
+  const [query, setQuery] = useState('')
+  const [totalPages, setTotalPages] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
 
-  // Функция получения популярных фильмов
-  const fetchPopularMovies = async () => {
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch(
-        'https://api.themoviedb.org/3/movie/popular?api_key=e08d20aa35868692ffd33dd582333223'
-      )
-      if (!response.ok) {
-        throw new Error('Ошибка при загрузке популярных фильмов')
-      }
-      const data = await response.json()
-      setMovies(data.results)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Функция получения фильмов по запросу
-  const fetchMovies = async (query) => {
+  // Функция получения фильмов с серверной пагинацией
+  const fetchMovies = async (searchQuery, page = 1) => {
     if (!navigator.onLine) {
       setIsOffline(true)
       return
@@ -46,14 +29,19 @@ const App = () => {
     setIsOffline(false)
 
     try {
-      const response = await fetch(
-        `https://api.themoviedb.org/3/search/movie?api_key=e08d20aa35868692ffd33dd582333223&query=${query}`
-      )
+      const apiUrl = searchQuery
+        ? `https://api.themoviedb.org/3/search/movie?api_key=e08d20aa35868692ffd33dd582333223&query=${searchQuery}&page=${page}`
+        : `https://api.themoviedb.org/3/movie/popular?api_key=e08d20aa35868692ffd33dd582333223&page=${page}`
+
+      const response = await fetch(apiUrl)
+
       if (!response.ok) {
         throw new Error('Ошибка при загрузке фильмов')
       }
+
       const data = await response.json()
       setMovies(data.results)
+      setTotalPages(data.total_pages)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -61,58 +49,64 @@ const App = () => {
     }
   }
 
-  // Эффект для загрузки популярных фильмов при монтировании компонента
+  // Дебаунс для поиска
+  const debouncedFetchMovies = useCallback(
+    debounce((searchQuery, page) => fetchMovies(searchQuery, page), 500),
+    []
+  )
+
+  // Эффект для получения популярных фильмов при загрузке страницы
   useEffect(() => {
-    fetchPopularMovies()
+    fetchMovies(query, currentPage) // Запрос на фильмы по текущему поисковому запросу и странице
+  }, [query, currentPage])
 
-    window.addEventListener('online', () => setIsOffline(false))
-    window.addEventListener('offline', () => setIsOffline(true))
-
-    return () => {
-      window.removeEventListener('online', () => setIsOffline(false))
-      window.removeEventListener('offline', () => setIsOffline(true))
-    }
-  }, [])
-
-  // Эффект для динамического поиска при изменении запроса
-  useEffect(() => {
-    if (query === '') {
-      fetchPopularMovies() // Показываем популярные фильмы, если запрос пустой
-    } else {
-      const delayDebounceFn = setTimeout(() => {
-        fetchMovies(query) // Выполняем поиск по запросу с задержкой
-      }, 500) // Задержка 500 мс для оптимизации запросов
-
-      return () => clearTimeout(delayDebounceFn) // Очищаем таймер при каждом изменении
-    }
-  }, [query])
+  // Функция для обработки изменения страницы пагинации
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+  }
 
   // Функция обработки изменения запроса через input
   const handleSearch = (e) => {
-    setQuery(e.target.value)
+    const value = e.target.value
+    setQuery(value)
+    setCurrentPage(1) // Сбрасываем страницу при новом поиске
+    debouncedFetchMovies(value, 1) // Выполняем запрос с дебаунсом
   }
 
   return (
     <Layout className="app">
       <Header>
-        <Input
-          placeholder="Search for a movie..."
-          size="large"
-          value={query}
-          onChange={handleSearch}
-          allowClear // Добавляет возможность очистки поля
-        />
+        <Input.Search placeholder="Search for a movie..." enterButton="Search" size="large" onChange={handleSearch} />
       </Header>
 
       <Content className="content">
         {isOffline ? (
           <Alert message="You are offline" type="warning" showIcon />
         ) : loading ? (
-          <Spin size="large" />
+          <Spin
+            className={'spin'}
+            indicator={
+              <LoadingOutlined
+                style={{
+                  fontSize: 48,
+                }}
+                spin
+              />
+            }
+          />
         ) : error ? (
           <Alert message="Error" description={error} type="error" showIcon />
         ) : movies.length ? (
-          <MovieList movies={movies} />
+          <>
+            <MovieList movies={movies} />
+            <Pagination
+              current={currentPage}
+              total={totalPages * 10}
+              onChange={handlePageChange}
+              pageSize={20}
+              showSizeChanger={false}
+            />
+          </>
         ) : (
           <Alert message="No movies found" type="info" showIcon />
         )}
