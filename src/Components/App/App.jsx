@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Spin, Alert, Input, Layout, Pagination } from 'antd'
+import { Spin, Alert, Input, Layout, Pagination, Tabs } from 'antd'
 import { LoadingOutlined } from '@ant-design/icons'
 import { debounce } from 'lodash'
 
 import MovieList from '../MovieList/MovieList'
 import './App.less'
+import { GenreProvider } from '../../contexts/GenreContext.jsx'
 
 const { Header, Content } = Layout
+const { TabPane } = Tabs
 
 const App = () => {
   const [movies, setMovies] = useState([])
@@ -74,44 +76,45 @@ const App = () => {
   }
 
   return (
-    <Layout className="app">
-      <Header>
-        <Input.Search placeholder="Search for a movie..." enterButton="Search" size="large" onChange={handleSearch} />
-      </Header>
-
-      <Content className="content">
-        {isOffline ? (
-          <Alert message="You are offline" type="warning" showIcon />
-        ) : loading ? (
-          <Spin
-            className={'spin'}
-            indicator={
-              <LoadingOutlined
-                style={{
-                  fontSize: 48,
-                }}
-                spin
-              />
-            }
-          />
-        ) : error ? (
-          <Alert message="Error" description={error} type="error" showIcon />
-        ) : movies.length ? (
-          <>
-            <MovieList movies={movies} />
-            <Pagination
-              current={currentPage}
-              total={totalPages * 10}
-              onChange={handlePageChange}
-              pageSize={20}
-              showSizeChanger={false}
+    <GenreProvider>
+      <Layout className="app">
+        <Header>
+          <Input.Search placeholder="Search for a movie..." enterButton="Search" size="large" onChange={handleSearch} />
+        </Header>
+        <Content className="content">
+          {isOffline ? (
+            <Alert message="You are offline" type="warning" showIcon />
+          ) : loading ? (
+            <Spin
+              className={'spin'}
+              indicator={
+                <LoadingOutlined
+                  style={{
+                    fontSize: 48,
+                  }}
+                  spin
+                />
+              }
             />
-          </>
-        ) : (
-          <Alert message="No movies found" type="info" showIcon />
-        )}
-      </Content>
-    </Layout>
+          ) : error ? (
+            <Alert message="Error" description={error} type="error" showIcon />
+          ) : movies.length ? (
+            <>
+              <MovieList movies={movies} />
+              <Pagination
+                current={currentPage}
+                total={totalPages * 10}
+                onChange={handlePageChange}
+                pageSize={20}
+                showSizeChanger={false}
+              />
+            </>
+          ) : (
+            <Alert message="No movies found" type="info" showIcon />
+          )}
+        </Content>
+      </Layout>
+    </GenreProvider>
   )
 }
 

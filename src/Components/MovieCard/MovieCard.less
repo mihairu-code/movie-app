@@ -4,33 +4,90 @@
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
-}
+  justify-content: space-between;
 
-.movie-card img {
-  width: 183px !important;
-  height: 281px;
+  img {
+    width: 183px !important;
+    height: 281px;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .ant-card-meta-description {
+    display: flex;
+    flex-direction: column;
+    row-gap: 9px;
+    height: 220px;
+
+    .genres {
+      display: flex;
+      flex-direction: row;
+      gap: 5px;
+      flex-wrap: wrap;
+
+      span {
+        margin-inline-end: 0;
+      }
+    }
+    p:last-child {
+      @font-size-sm: 12px;
+      font-family: Inter, sans-serif;
+      font-weight: 100;
+      line-height: 1.5;
+      text-align: left;
+      word-spacing: 0.1em;
+      color: #000000;
+    }
+  }
 }
 
 .ant-card-body {
   width: 228px;
-  height: 216px;
+  height: 270px;
   padding: 10px 0 0 0 !important;
 }
 
 .ant-card-meta {
   width: 228px;
-  height: 216px;
+  height: 270px;
 
   &-title {
     font-size: 20px!important;
     font-weight: 300!important;
     line-height: 28px!important;
+    margin-bottom: 0 !important;
     text-align: left;
-
+    max-width: 200px;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
 .ant-rate {
   font-size: 15px!important;
+  margin-top: auto;
+  display: block; /* Делаем блоком для правильного выравнивания */
 }
 
+.rate-wrapper {
+  margin-top: auto; /* Заставляем звезды быть внизу */
+}
+
+.movie-rating {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-weight: 400;
+  font-size: 14px;
+}
