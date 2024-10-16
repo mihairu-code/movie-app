@@ -7,15 +7,40 @@ import './MovieCard.less'
 
 const { Meta } = Card
 
-const MovieCard = ({ movie, onRate }) => {
+const MovieCard = ({ movie, onRate, guestSessionId, accessToken }) => {
   const { title, release_date, overview, vote_average, genre_ids, poster_path } = movie
   const genres = useContext(GenreContext)
 
   const [userRating, setUserRating] = useState(null)
 
+  // Функция для установки рейтинга
+  const rateMovie = async (movieId, rating) => {
+    const url = `https://api.themoviedb.org/3/movie/${movieId}/rating?guest_session_id=${guestSessionId}`
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`, // Используем переданный Access Token
+        },
+        body: JSON.stringify({ value: rating }), // Отправляем выбранный рейтинг
+      })
+
+      if (!response.ok) {
+        throw new Error('Не удалось оценить фильм')
+      }
+
+      console.log(`Фильм с ID ${movieId} оценён на ${rating}`)
+    } catch (error) {
+      console.error('Ошибка при установке рейтинга:', error)
+    }
+  }
+
   const handleRateChange = (value) => {
-    setUserRating(value)
-    onRate(movie.id, value)
+    setUserRating(value) // Обновляем состояние рейтинга
+    rateMovie(movie.id, value) // Устанавливаем рейтинг фильма
+    onRate(movie.id, value) // Вызываем функцию onRate для передачи информации о рейтинге
   }
 
   const truncateText = (text, genreCount) => {
