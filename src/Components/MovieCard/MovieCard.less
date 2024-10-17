@@ -1,10 +1,20 @@
 .movie-card {
+  position: relative;
   width: 454px;
   height: 281px;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
   justify-content: space-between;
+
+  .delete-button {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 0, 0, 0.47);
+  }
 
   img {
     width: 183px !important;
@@ -79,8 +89,8 @@
 
 .movie-rating {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 16px;
+  right: 16px;
   width: 30px;
   height: 30px;
   border-radius: 50%;

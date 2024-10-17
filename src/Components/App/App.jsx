@@ -3,14 +3,7 @@ import { Spin, Alert, Input, Layout, Pagination, Tabs } from 'antd'
 import { LoadingOutlined } from '@ant-design/icons'
 import { debounce } from 'lodash'
 
-import {
-  createGuestSession,
-  getRatedMovies,
-  hasGuestSession,
-  getGenres,
-  logoutGuestSession,
-  ACCESS_TOKEN,
-} from '../../api/tmdb.js'
+import { createGuestSession, getRatedMovies, hasGuestSession, removeRating, ACCESS_TOKEN } from '../../api/tmdb.js'
 import MovieList from '../MovieList/MovieList'
 import './App.less'
 import { GenreProvider } from '../../contexts/GenreContext.jsx'
@@ -93,9 +86,6 @@ const App = () => {
       const fetchRatedMovies = async () => {
         try {
           const ratedMoviesData = await getRatedMovies(guestSessionId)
-          if (ratedMoviesData.results.length === 0) {
-            console.log('Нет оценённых фильмов в этой сессии.')
-          }
           setRatedMovies(ratedMoviesData.results)
         } catch (error) {
           console.error('Ошибка при получении оценённых фильмов:', error)
@@ -104,6 +94,15 @@ const App = () => {
       fetchRatedMovies()
     }
   }, [guestSessionId])
+
+  const handleDelete = async (movieId) => {
+    try {
+      await removeRating(movieId, guestSessionId)
+      setRatedMovies((prevMovies) => prevMovies.filter((movie) => movie.id !== movieId))
+    } catch (error) {
+      console.error('Ошибка при удалении фильма из оценённых:', error)
+    }
+  }
 
   const handleTabChange = (key) => {
     setCurrentTab(key)
@@ -124,8 +123,31 @@ const App = () => {
     debouncedFetchMovies(value, 1)
   }
 
-  const handleRate = (movieId, rating) => {
+  const handleRate = async (movieId, rating) => {
     console.log(`Rated movie with id ${movieId}: ${rating}`)
+    try {
+      const url = `https://api.themoviedb.org/3/movie/${movieId}/rating?guest_session_id=${guestSessionId}`
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({ value: rating }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Не удалось оценить фильм')
+      }
+
+      console.log(`Фильм с ID ${movieId} оценён на ${rating}`)
+
+      // Обновляем оцененные фильмы
+      const updatedRatedMovies = await getRatedMovies(guestSessionId)
+      setRatedMovies(updatedRatedMovies.results)
+    } catch (error) {
+      console.error('Ошибка при выставлении рейтинга:', error)
+    }
   }
 
   return (
@@ -151,7 +173,7 @@ const App = () => {
               {
                 label: 'Rated',
                 key: '2',
-                children: <MovieList movies={ratedMovies} />,
+                children: null, // Здесь не нужно рендерить MovieList
               },
             ]}
           />
@@ -171,6 +193,7 @@ const App = () => {
                 onRate={handleRate}
                 guestSessionId={guestSessionId}
                 accessToken={ACCESS_TOKEN}
+                isRatedTab={false}
               />
               <Pagination
                 current={currentPage}
@@ -183,7 +206,7 @@ const App = () => {
           ) : currentTab === '1' ? (
             <Alert message="No movies found" type="info" showIcon />
           ) : (
-            <MovieList movies={ratedMovies} />
+            <MovieList movies={ratedMovies} onDelete={handleDelete} isRatedTab={true} />
           )}
         </Content>
       </Layout>

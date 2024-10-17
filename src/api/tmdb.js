@@ -1,7 +1,7 @@
-const API_KEY = '477f8f7b3e3580c29df694c734019337' // Ваш API ключ
+const API_KEY = '477f8f7b3e3580c29df694c734019337'
 const BASE_URL = 'https://api.themoviedb.org/3'
 export const ACCESS_TOKEN =
-  'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0NzdmOGY3YjNlMzU4MGMyOWRmNjk0YzczNDAxOTMzNyIsIm5iZiI6MTcyOTA5NzkzOC4yNzU0NzksInN1YiI6IjY2YzljMzY0ZGNhZDc5M2I0MzNjZmE2MyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Wn1z2v7NIYxGPbGFF7i0NKg3lZmEY7ZVlRg5jjfgv7o' // Ваш Access Token
+  'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0NzdmOGY3YjNlMzU4MGMyOWRmNjk0YzczNDAxOTMzNyIsIm5iZiI6MTcyOTA5NzkzOC4yNzU0NzksInN1YiI6IjY2YzljMzY0ZGNhZDc5M2I0MzNjZmE2MyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Wn1z2v7NIYxGPbGFF7i0NKg3lZmEY7ZVlRg5jjfgv7o'
 
 // Получение списка жанров
 export const getGenres = async () => {
@@ -10,7 +10,7 @@ export const getGenres = async () => {
     if (!response.ok) {
       throw new Error('Не удалось получить список жанров')
     }
-    return await response.json() // Возвращаем JSON с жанрами
+    return await response.json()
   } catch (error) {
     console.error('Ошибка при запросе жанров:', error)
     throw error
@@ -19,10 +19,10 @@ export const getGenres = async () => {
 
 // Создание новой гостевой сессии
 export const createGuestSession = async () => {
-  const guestSessionId = localStorage.getItem('guestSessionId') // Проверяем, есть ли уже сессия
+  const guestSessionId = localStorage.getItem('guestSessionId')
 
   if (guestSessionId) {
-    return guestSessionId // Если сессия уже есть, возвращаем её
+    return guestSessionId
   }
 
   try {
@@ -39,8 +39,8 @@ export const createGuestSession = async () => {
     }
 
     const data = await response.json()
-    localStorage.setItem('guestSessionId', data.guest_session_id) // Сохраняем guest_session_id в localStorage
-    return data.guest_session_id // Возвращаем guest_session_id
+    localStorage.setItem('guestSessionId', data.guest_session_id)
+    return data.guest_session_id
   } catch (error) {
     console.error('Ошибка при создании гостевой сессии:', error)
     throw error
@@ -49,13 +49,13 @@ export const createGuestSession = async () => {
 
 // Удаление текущей гостевой сессии
 export const logoutGuestSession = () => {
-  localStorage.removeItem('guestSessionId') // Удаляем guest_session_id из localStorage
+  localStorage.removeItem('guestSessionId')
   console.log('Гостевая сессия удалена')
 }
 
 // Проверка наличия гостевой сессии
 export const hasGuestSession = () => {
-  return !!localStorage.getItem('guestSessionId') // Проверяем наличие сессии
+  return !!localStorage.getItem('guestSessionId')
 }
 
 // Получение оценённых фильмов по guest_session_id
@@ -77,9 +77,33 @@ export const getRatedMovies = async (guestSessionId) => {
     }
 
     const data = await response.json()
-    return data // Возвращаем данные с оценёнными фильмами
+    return data
   } catch (error) {
     console.error('Ошибка при получении оценённых фильмов:', error.message)
-    throw error // Пробрасываем ошибку для обработки на уровне приложения
+    throw error
+  }
+}
+
+// Удаление рейтинга фильма
+export const removeRating = async (movieId, guestSessionId) => {
+  const url = `${BASE_URL}/movie/${movieId}/rating?guest_session_id=${guestSessionId}`
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Не удалось удалить рейтинг фильма')
+    }
+
+    console.log(`Фильм с ID ${movieId} удалён из оценённых фильмов`)
+  } catch (error) {
+    console.error('Ошибка при удалении рейтинга фильма:', error)
+    throw error
   }
 }

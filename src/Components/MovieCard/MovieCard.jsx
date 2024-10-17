@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react'
-import { Card, Rate, Tag, Tooltip } from 'antd'
+import { Card, Rate, Tag, Tooltip, Button } from 'antd'
+import { CloseOutlined } from '@ant-design/icons'
 import { format } from 'date-fns'
 
 import { GenreContext } from '../../contexts/GenreContext'
@@ -7,13 +8,12 @@ import './MovieCard.less'
 
 const { Meta } = Card
 
-const MovieCard = ({ movie, onRate, guestSessionId, accessToken }) => {
+const MovieCard = ({ movie, onRate, onDelete, guestSessionId, accessToken, isRatedTab }) => {
   const { title, release_date, overview, vote_average, genre_ids, poster_path } = movie
   const genres = useContext(GenreContext)
 
   const [userRating, setUserRating] = useState(null)
 
-  // Функция для установки рейтинга
   const rateMovie = async (movieId, rating) => {
     const url = `https://api.themoviedb.org/3/movie/${movieId}/rating?guest_session_id=${guestSessionId}`
 
@@ -22,9 +22,9 @@ const MovieCard = ({ movie, onRate, guestSessionId, accessToken }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`, // Используем переданный Access Token
+          Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ value: rating }), // Отправляем выбранный рейтинг
+        body: JSON.stringify({ value: rating }),
       })
 
       if (!response.ok) {
@@ -38,13 +38,17 @@ const MovieCard = ({ movie, onRate, guestSessionId, accessToken }) => {
   }
 
   const handleRateChange = (value) => {
-    setUserRating(value) // Обновляем состояние рейтинга
-    rateMovie(movie.id, value) // Устанавливаем рейтинг фильма
-    onRate(movie.id, value) // Вызываем функцию onRate для передачи информации о рейтинге
+    setUserRating(value)
+    rateMovie(movie.id, value)
+    onRate(movie.id, value)
+  }
+
+  const handleDelete = () => {
+    onDelete(movie.id)
   }
 
   const truncateText = (text, genreCount) => {
-    const minLength = 150 // Минимальная длина текста
+    const minLength = 150
     const adjustedMaxLength = Math.max(minLength, 150 - genreCount * 10)
     if (text.length <= adjustedMaxLength) return text
     const truncated = text.slice(0, text.lastIndexOf(' ', adjustedMaxLength))
@@ -70,13 +74,17 @@ const MovieCard = ({ movie, onRate, guestSessionId, accessToken }) => {
         )
       }
     >
+      {isRatedTab && (
+        <Button className="delete-button" shape="circle" icon={<CloseOutlined />} size="small" onClick={handleDelete} />
+      )}
+
       <div className="movie-rating" style={{ backgroundColor: getRatingColor(vote_average) }}>
         {vote_average.toFixed(1)}
       </div>
       <Meta
         title={
           <Tooltip title={title}>
-            <span className="movie-title">{title}</span> {/* Ограничиваем длину названия */}
+            <span className="movie-title">{title}</span>
           </Tooltip>
         }
         description={
