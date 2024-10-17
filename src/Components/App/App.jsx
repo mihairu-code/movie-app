@@ -166,7 +166,12 @@ const App = () => {
             <Alert message="Error" description={error} type="error" showIcon />
           ) : currentTab === '1' && movies.length ? (
             <>
-              <MovieList movies={movies} onRate={handleRate} guestSessionId={guestSessionId} accessToken={ACCESS_TOKEN} />
+              <MovieList
+                movies={movies}
+                onRate={handleRate}
+                guestSessionId={guestSessionId}
+                accessToken={ACCESS_TOKEN}
+              />
               <Pagination
                 current={currentPage}
                 total={totalPages * 10}

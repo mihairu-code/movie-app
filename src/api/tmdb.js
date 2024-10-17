@@ -60,7 +60,7 @@ export const hasGuestSession = () => {
 
 // Получение оценённых фильмов по guest_session_id
 export const getRatedMovies = async (guestSessionId) => {
-  const url = `${BASE_URL}/guest_session/${guestSessionId}/rated/movies?language=en-US&sort_by=created_at.asc&page=1`
+  const url = `${BASE_URL}/guest_session/${guestSessionId}/rated/movies?`
   console.log('Запрос на получение оценённых фильмов:', url)
 
   try {
